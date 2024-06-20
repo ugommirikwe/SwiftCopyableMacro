@@ -1,8 +1,30 @@
 import CopyableMacro
 
-let a = 17
-let b = 25
+@Copyable
+final class Sample {
+    var x: Int
+    let y: Double
 
-let (result, code) = #stringify(a + b)
+    init(x: Int, y: Double) {
+        self.x = x
+        self.y = y
+    }
+}
 
-print("The value \(result) was produced by the code \"\(code)\"")
+let sample = Sample(x: 1, y: 2)
+
+@Copyable
+struct StructSample {
+    var firstProp: Bool
+    let secondProp: String
+    //let t: String? = nil
+    var fourth: String {
+        secondProp
+    }
+    let fifth: [Int]
+    
+}
+
+let structSample = StructSample(firstProp: true, secondProp: "secondProp", fifth: [0, 1])
+
+print(sample)

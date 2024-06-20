@@ -1,11 +1,26 @@
 // The Swift Programming Language
 // https://docs.swift.org/swift-book
 
-/// A macro that produces both a value and a string containing the
-/// source code that generated the value. For example,
+/// A macro that adds a `copy()` method into a type bearing the annotation. For example:
 ///
-///     #stringify(x + y)
+///     @Copyable
+///     struct User {
+///         let name: String
+///         let age: Int
+///     }
 ///
-/// produces a tuple `(x + y, "x + y")`.
-@freestanding(expression)
-public macro stringify<T>(_ value: T) -> (T, String) = #externalMacro(module: "CopyableMacroMacros", type: "StringifyMacro")
+/// updates the struct as follows:
+///
+///     struct User {
+///         let name: String
+///         let age: Int
+///
+///         func copy(name: String? = nil, age: Int? = nil) -> Self {
+///             .init(
+///                 name: name ?? self.name
+///                 age: age ?? self.age
+///             )
+///         }
+///     }
+@attached(member, names: named(copy))
+public macro Copyable() = #externalMacro(module: "CopyableMacroMacros", type: "CopyableMacroMacro")
