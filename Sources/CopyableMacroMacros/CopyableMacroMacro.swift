@@ -3,15 +3,7 @@ import SwiftSyntax
 import SwiftSyntaxBuilder
 import SwiftSyntaxMacros
 
-/// Implementation of the `Copyable` macro, adds a `copy` method to a type.
-///
-/// For example
-///
-///     @Copyable
-///
-///  will expand to
-///
-///     ... TODO
+/// Implementation of the `Copyable` macro, adds a `copy` method to a struct type.
 public struct CopyableMacroMacro: MemberMacro {
     @main
     struct CopyableMacroPlugin: CompilerPlugin {
@@ -25,11 +17,6 @@ public struct CopyableMacroMacro: MemberMacro {
         providingMembersOf declaration: some DeclGroupSyntax,
         in context: some MacroExpansionContext
     ) throws -> [DeclSyntax] {
-        // TODO: Extract the properties from the type--must be a class or struct
-        //let storedProperties = declaration
-        //    .as(ClassDeclSyntax.self)?.storedProperties() ?? declaration
-        //    .as(StructDeclSyntax.self)?.storedProperties()
-        
         // Extract the properties from the type--must be a struct
         guard let storedProperties = declaration
             .as(StructDeclSyntax.self)?.storedProperties(),
@@ -49,29 +36,35 @@ public struct CopyableMacroMacro: MemberMacro {
                     )?.identifier,
                     
                         // ...and then the property's type...
-                    let type = /*patternBinding.typeAnnotation?.as(
-                        TypeAnnotationSyntax.self
-                    )?.type.as(
-                        IdentifierTypeSyntax.self
-                    )?.name ??
-                        // ... including if it's an optional type
-                        patternBinding.typeAnnotation?.as(
-                            TypeAnnotationSyntax.self
-                        )?.type.as(
-                            OptionalTypeSyntax.self
-                        )?.wrappedType.as(
-                            IdentifierTypeSyntax.self
-                        )?.name ??*/
-                        
-                        patternBinding.typeAnnotation?.as(TypeAnnotationSyntax.self)?.trimmed.description.replacingOccurrences(of: "?", with: "")
+                    let type = patternBinding.typeAnnotation?.as(TypeAnnotationSyntax.self)?.trimmed.description.replacingOccurrences(of: "?", with: "")
                 else { return nil }
                 
                 return (name: name.text, type: type)
             }
         
+        let optionalNames: Set<String> = Set(
+            storedProperties.compactMap { property in
+                guard
+                    let binding = property.bindings.first,
+                    let id = binding.pattern.as(IdentifierPatternSyntax.self)?.identifier,
+                    binding.typeAnnotation?.type.as(OptionalTypeSyntax.self) != nil
+                else {
+                    return nil
+                }
+                return id.text
+            }
+        )
+        
         let funcBody: ExprSyntax = """
         .init(
-        \(raw: funcArguments.map { "\($0.name): \($0.name) ?? self.\($0.name)" }.joined(separator: ", \n"))
+        \(raw: funcArguments.map {arg in
+            if optionalNames.contains(arg.name) {
+              // Explicit nil assignment preserved
+              return "\(arg.name): \(arg.name)"
+            } else {
+              return "\(arg.name): \(arg.name) ?? self.\(arg.name)"
+            }
+        }.joined(separator: ", \n"))
         )
         """
         

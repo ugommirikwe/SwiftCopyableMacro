@@ -12,22 +12,6 @@ let testMacros: [String: Macro.Type] = [
 #endif
 
 final class CopyableMacroTests: XCTestCase {
-//    func testMacro() throws {
-//        #if canImport(CopyableMacroMacros)
-//        assertMacroExpansion(
-//            """
-//            #stringify(a + b)
-//            """,
-//            expandedSource: """
-//            (a + b, "a + b")
-//            """,
-//            macros: testMacros
-//        )
-//        #else
-//        throw XCTSkip("macros are only supported when running tests for the host platform")
-//        #endif
-//    }
-    
     func testMacroForClass() {
         assertMacroExpansion(
             """
@@ -170,7 +154,7 @@ final class CopyableMacroTests: XCTestCase {
                     .init(
                         x: x ?? self.x,
                         y: y ?? self.y,
-                        g: g ?? self.g,
+                        g: g,
                         users: users ?? self.users
                     )
                 }

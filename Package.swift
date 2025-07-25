@@ -9,7 +9,7 @@ let package = Package(
     products: [
         .library(
             name: "CopyableMacro",
-            targets: ["CopyableMacroMacros"]
+            targets: ["CopyableMacro"]
         ),
         .executable(
             name: "CopyableMacroClient",
